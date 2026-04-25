@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PCC Explorer - 標案每日快報</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&family=Noto+Sans+TC:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #6366f1;
+            --bg: #0f172a;
+            --card-bg: #1e293b;
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+            --border: #334155;
+            --工程: #f59e0b;
+            --勞務: #10b981;
+            --財物: #3b82f6;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { font-family: 'Inter', 'Noto Sans TC', sans-serif; background-color: var(--bg); color: var(--text-main); padding: 1.5rem; }
+        .container { max-width: 1700px; margin: 0 auto; }
+
+        header { margin-bottom: 1rem; border-bottom: 1px solid var(--border); padding-bottom: 0.5rem; display: flex; justify-content: space-between; align-items: center;}
+        h1 { font-size: 1.25rem; font-weight: 700; color: var(--primary); }
+
+        #stats { font-size: 0.8rem; color: var(--text-muted); margin-bottom: 1rem; font-weight: 600;}
+
+        /* Table */
+        .table-wrap {
+            background: var(--card-bg);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            max-height: 80vh;
+            overflow: auto;
+        }
+
+        table { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
+        thead { position: sticky; top: 0; z-index: 100; background: #1e293b; }
+        
+        th {
+            text-align: left;
+            padding: 0.75rem 1rem;
+            color: var(--text-muted);
+            border-bottom: 2px solid var(--border);
+            position: relative;
+            user-select: none;
+        }
+        
+        .header-main { display: flex; align-items: center; justify-content: space-between; cursor: pointer; }
+        .header-main:hover { color: white; }
+        .filter-btn { font-size: 0.7rem; padding: 2px 4px; border-radius: 3px; background: #334155; }
+
+        .filter-popover {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            background: #1e293b;
+            border: 1px solid var(--primary);
+            border-radius: 8px;
+            padding: 1rem;
+            min-width: 250px;
+            max-height: 400px;
+            overflow-y: auto;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+            z-index: 2000;
+            display: none;
+            cursor: default;
+        }
+        .filter-popover.show { display: block; }
+
+        .pop-head { display: flex; justify-content: space-between; border-bottom: 1px solid var(--border); padding-bottom: 0.5rem; margin-bottom: 0.5rem; }
+        .btn-sm { background: var(--primary); color: white; border: none; padding: 2px 8px; border-radius: 4px; font-size: 0.7rem; cursor: pointer; }
+
+        .item { display: flex; align-items: center; gap: 10px; padding: 6px 0; font-size: 0.85rem; cursor: pointer; color: #fff; }
+        .item:hover { background: rgba(255,255,255,0.05); }
+        .item input { width: 16px; height: 16px; cursor: pointer; }
+
+        td { padding: 0.7rem 1rem; border-bottom: 1px solid var(--border); vertical-align: top; }
+        .tag { padding: 2px 6px; border-radius: 4px; font-weight: 700; font-size: 0.75rem; }
+        .tag-工程 { background: rgba(245,158,11,0.1); color: var(--工程); }
+        .tag-勞務 { background: rgba(16,185,129,0.1); color: var(--勞務); }
+        .tag-財物 { background: rgba(59,130,246,0.1); color: var(--財物); }
+        .main-link { color: #fff; text-decoration: none; font-weight: 600; font-size: 0.95rem; }
+
+        .input-inline {
+            width: 100%; padding: 6px; background: #0f172a; border: 1px solid var(--border); color: white; border-radius: 4px; margin-bottom: 10px; font-size: 0.8rem;
+        }
+    </style>
+</head>
+<body onclick="closeEverything()">
+    <div class="container">
+        <header>
+            <h1>PCC Explorer 標案每日快報</h1>
+            <div id="date-tag" style="font-size:0.8rem; color:var(--text-muted)"></div>
+        </header>
+
+        <div id="stats">讀取中...</div>
+
+        <div class="table-wrap">
+            <table>
+                <thead>
+                    <tr>
+                        <th id="th-cat">
+                            <div class="header-main" onclick="toggleFilter(event, 'pop-cat')">性質 <span class="filter-btn">▼</span></div>
+                            <div id="pop-cat" class="filter-popover" onclick="event.stopPropagation()"></div>
+                        </th>
+                        <th id="th-unit">
+                            <div class="header-main" onclick="toggleFilter(event, 'pop-unit')">機關名稱 / 代碼 <span class="filter-btn">▼</span></div>
+                            <div id="pop-unit" class="filter-popover" onclick="event.stopPropagation()"></div>
+                        </th>
+                        <th id="th-title">
+                            <div class="header-main" onclick="toggleFilter(event, 'pop-title')">標案名稱 / 案號 <span class="filter-btn">▼</span></div>
+                            <div id="pop-title" class="filter-popover" onclick="event.stopPropagation()"></div>
+                        </th>
+                        <th id="th-type">
+                            <div class="header-main" onclick="toggleFilter(event, 'pop-type')">公告類型 <span class="filter-btn">▼</span></div>
+                            <div id="pop-type" class="filter-popover" onclick="event.stopPropagation()"></div>
+                        </th>
+                        <th style="width:60px;">連結</th>
+                    </tr>
+                </thead>
+                <tbody id="tbody"></tbody>
+            </table>
+        </div>
+    </div>
+
+    <script>
+        let db = []; // 全量資料庫
+        let selections = { '採購性質': new Set(), '公告類型': new Set() };
+        let keywords = { '機關名稱': '', '標案名稱': '' };
+
+        async function start() {
+            try {
+                const res = await fetch('data.json');
+                db = await res.json();
+                
+                // 初始化選擇集
+                const cats = [...new Set(db.map(i => i.採購性質))].sort();
+                const types = [...new Set(db.map(i => i.公告類型))].sort();
+                cats.forEach(c => selections['採購性質'].add(c));
+                types.forEach(t => selections['公告類型'].add(t));
+
+                // 建立選單 (基礎選項來自 db)
+                buildMenu('pop-cat', '採購性質', cats);
+                buildMenu('pop-type', '公告類型', types);
+                buildSearch('pop-unit', '機關名稱');
+                buildSearch('pop-title', '標案名稱');
+
+                if(db.length > 0) document.getElementById('date-tag').innerText = `資料日期: ${db[0].公告日期}`;
+                render();
+            } catch(e) { document.getElementById('stats').innerText = "載入錯誤"; }
+        }
+
+        function buildMenu(id, field, values) {
+            const el = document.getElementById(id);
+            el.innerHTML = `
+                <div class="pop-head">
+                    <span>${field} 篩選</span>
+                    <div>
+                        <button class="btn-sm" onclick="bulkSet('${field}', true, '${id}')">全選</button>
+                        <button class="btn-sm" onclick="bulkSet('${field}', false, '${id}')">清空</button>
+                    </div>
+                </div>
+                ${values.map(v => `
+                    <label class="item" onclick="event.stopPropagation()">
+                        <input type="checkbox" checked onchange="handleCheck(this, '${field}', '${v}')">
+                        <span>${v}</span>
+                    </label>
+                `).join('')}
+            `;
+        }
+
+        function buildSearch(id, field) {
+            const el = document.getElementById(id);
+            el.innerHTML = `
+                <div class="pop-head"><span>搜尋 ${field}</span></div>
+                <input type="text" class="input-inline" placeholder="輸入關鍵字..." oninput="handleSearch(this, '${field}')" onclick="event.stopPropagation()">
+            `;
+        }
+
+        function handleCheck(cb, field, val) {
+            if(cb.checked) selections[field].add(val);
+            else selections[field].delete(val);
+            render();
+        }
+
+        function bulkSet(field, isAll, id) {
+            const pop = document.getElementById(id);
+            pop.querySelectorAll('input[type="checkbox"]').forEach(i => {
+                i.checked = isAll;
+                const val = i.nextElementSibling.innerText;
+                if(isAll) selections[field].add(val);
+                else selections[field].delete(val);
+            });
+            render();
+        }
+
+        function handleSearch(input, field) {
+            keywords[field] = input.value.toLowerCase();
+            render();
+        }
+
+        function toggleFilter(e, id) {
+            e.stopPropagation();
+            const el = document.getElementById(id);
+            const isOpen = el.classList.contains('show');
+            closeEverything();
+            if(!isOpen) el.classList.add('show');
+        }
+
+        function closeEverything() {
+            document.querySelectorAll('.filter-popover').forEach(p => p.classList.remove('show'));
+        }
+
+        function render() {
+            // 核心過濾邏輯
+            const filtered = db.filter(i => {
+                return (selections['採購性質'].has(i.採購性質)) &&
+                       (selections['公告類型'].has(i.公告類型)) &&
+                       (i.機關名稱.toLowerCase().includes(keywords['機關名稱']) || i.機關代碼.toLowerCase().includes(keywords['機關名稱'])) &&
+                       (i.標案名稱.toLowerCase().includes(keywords['標案名稱']) || (i.標案案號 && i.標案案號.toLowerCase().includes(keywords['標案名稱'])));
+            });
+
+            document.getElementById('stats').innerText = `目前顯示: ${filtered.length} 筆 / 總數 ${db.length} 筆`;
+
+            const tbody = document.getElementById('tbody');
+            const limit = 500;
+            tbody.innerHTML = filtered.slice(0, limit).map(i => `
+                <tr>
+                    <td><span class="tag tag-${i.採購性質}">${i.採購性質}</span></td>
+                    <td>
+                        <a href="${i.連結}" target="_blank" class="main-link">${i.標案名稱}</a>
+                        <span style="color:var(--text-muted); font-size:0.75rem; display:block; margin-top:3px;">
+                            ${i.機關名稱} <span style="background:#334155; padding:1px 3px; border-radius:3px;">ID:${i.機關代碼}</span>案號:${i.標案案號}
+                        </span>
+                    </td>
+                    <td>${i.公告類型}</td>
+                    <td style="color:var(--text-muted)">${i.公告日期}</td>
+                    <td><a href="${i.連結}" target="_blank" style="text-decoration:none;">🔗</a></td>
+                </tr>
+            `).join('');
+
+            if(filtered.length > limit) {
+                tbody.innerHTML += `<tr><td colspan="5" style="text-align:center; padding:1rem; color:var(--text-muted)">僅顯示前 ${limit} 筆。</td></tr>`;
+            }
+        }
+
+        start();
+    </script>
+</body>
+</html>
