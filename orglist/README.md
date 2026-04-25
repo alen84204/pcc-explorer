@@ -40,4 +40,4 @@
 ```
 
 ## 4. 維護工具 (Maintainer)
-*   執行 `python clean_dictionary.py` 會自動連線官網，偵測官方最後更新日期（Last-Modified），下載並重新產出上述字典檔。
+*   執行 `python orglist/sync_orgs_and_clean.py` 會自動連線官網，偵測官方最後更新日期（Last-Modified），下載並重新產出上述字典檔。
