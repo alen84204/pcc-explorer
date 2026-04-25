@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PCC Explorer - 機關代碼快搜中心</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&family=Noto+Sans+TC:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #2563eb;
+            --primary-hover: #1d4ed8;
+            --bg: #f8fafc;
+            --card-bg: #ffffff;
+            --text-main: #1e293b;
+            --text-muted: #64748b;
+            --border: #e2e8f0;
+            --active-glow: rgba(37, 99, 235, 0.1);
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: 'Inter', 'Noto Sans TC', sans-serif;
+            background-color: var(--bg);
+            color: var(--text-main);
+            line-height: 1.6;
+            padding: 2rem;
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+
+        h1 { font-weight: 700; color: var(--primary); margin-bottom: 0.5rem; }
+        .subtitle { color: var(--text-muted); font-size: 0.95rem; }
+
+        .search-section {
+            background: var(--card-bg);
+            padding: 2rem;
+            border-radius: 1rem;
+            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);
+            margin-bottom: 2rem;
+        }
+
+        .search-group {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        #search-input {
+            flex: 1;
+            padding: 0.75rem 1.25rem;
+            border: 2px solid var(--border);
+            border-radius: 0.5rem;
+            font-size: 1rem;
+            outline: none;
+            transition: all 0.2s;
+        }
+
+        #search-input:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 4px var(--active-glow);
+        }
+
+        .toggle-group {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 0.9rem;
+            color: var(--text-muted);
+            user-select: none;
+            cursor: pointer;
+        }
+
+        /* Table Styles */
+        .results-table {
+            width: 100%;
+            border-collapse: collapse;
+            background: var(--card-bg);
+            border-radius: 0.5rem;
+            overflow: hidden;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+
+        .results-table th {
+            background: #f1f5f9;
+            text-align: left;
+            padding: 1rem;
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            font-weight: 600;
+            border-bottom: 2px solid var(--border);
+        }
+
+        .results-table td {
+            padding: 1rem;
+            border-bottom: 1px solid var(--border);
+            font-size: 0.9rem;
+        }
+
+        .results-table tr:hover { background: #f8fafc; }
+
+        .tag {
+            padding: 0.2rem 0.5rem;
+            border-radius: 0.25rem;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+        .tag-active { background: #dcfce7; color: #166534; }
+        .tag-history { background: #fee2e2; color: #991b1b; }
+
+        .code-pill {
+            font-family: monospace;
+            background: #f1f5f9;
+            padding: 0.1rem 0.4rem;
+            border-radius: 0.25rem;
+            color: var(--primary);
+        }
+
+        .loading {
+            text-align: center;
+            padding: 4rem;
+            color: var(--text-muted);
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 4rem;
+            color: var(--text-muted);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>PCC Explorer 機關快搜</h1>
+            <p class="subtitle">輸入機關名稱、主管單位、縣市或代碼，即時檢索全台機關百科</p>
+        </header>
+
+        <div class="search-section">
+            <div class="search-group">
+                <input type="text" id="search-input" placeholder="試試搜尋「農業部」、「新北市」或「3.10.35」..." autocomplete="off">
+            </div>
+            <label class="toggle-group">
+                <input type="checkbox" id="toggle-history"> 包含已裁撤/改組之歷史機關
+            </label>
+        </div>
+
+        <div id="status" style="margin-bottom: 0.5rem; font-size: 0.85rem; color: var(--text-muted);">正在初始化資料庫...</div>
+        
+        <table class="results-table" id="results-table" style="display: none;">
+            <thead>
+                <tr>
+                    <th>狀態</th>
+                    <th>招標代碼 (PCC)</th>
+                    <th>機關名稱</th>
+                    <th>主管單位</th>
+                    <th>縣市</th>
+                    <th>官方代碼</th>
+                </tr>
+            </thead>
+            <tbody id="results-body"></tbody>
+        </table>
+
+        <div id="message" class="loading">正在讀取機關字典...</div>
+    </div>
+
+    <script>
+        let activeData = {};
+        let historyData = {};
+        let isHistoryLoaded = false;
+
+        const searchInput = document.getElementById('search-input');
+        const historyToggle = document.getElementById('toggle-history');
+        const resultsTable = document.getElementById('results-table');
+        const resultsBody = document.getElementById('results-body');
+        const messageDiv = document.getElementById('message');
+        const statusDiv = document.getElementById('status');
+
+        async function init() {
+            try {
+                const res = await fetch('orglist/units_Active.json');
+                activeData = await res.json();
+                statusDiv.innerText = `現役機關已就緒 (${Object.keys(activeData).length} 筆)`;
+                messageDiv.innerText = '請輸入關鍵字開始搜尋';
+            } catch (e) {
+                messageDiv.innerText = '讀取失敗，請確認 orglist/ 內有字典檔。';
+            }
+        }
+
+        async function loadHistory() {
+            if (isHistoryLoaded) return;
+            statusDiv.innerText = '正在加載歷史資料...';
+            const res = await fetch('orglist/units_History.json');
+            historyData = await res.json();
+            isHistoryLoaded = true;
+            statusDiv.innerText = `資料庫完整就緒 (現役: ${Object.keys(activeData).length} / 歷史: ${Object.keys(historyData).length})`;
+        }
+
+        function renderResults(results) {
+            resultsBody.innerHTML = '';
+            if (results.length === 0) {
+                resultsTable.style.display = 'none';
+                messageDiv.innerHTML = '<div class="empty-state">找不到相關機關。</div>';
+                return;
+            }
+
+            resultsTable.style.display = 'table';
+            messageDiv.style.display = 'none';
+
+            results.slice(0, 200).forEach(item => {
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td><span class="tag ${item.isHistory ? 'tag-history' : 'tag-active'}">${item.isHistory ? '歷史' : '現役'}</span></td>
+                    <td><span class="code-pill">${item.pcc_id}</span></td>
+                    <td style="font-weight:600">${highlight(item.name, searchInput.value)}</td>
+                    <td style="font-size:0.8rem">${highlight(item.parent, searchInput.value)}</td>
+                    <td>${item.city}</td>
+                    <td style="font-size:0.8rem; color:var(--text-muted)">${item.official_id}</td>
+                `;
+                resultsBody.appendChild(tr);
+            });
+
+            if (results.length > 200) {
+                statusDiv.innerText += ` (顯示前 200 筆，總計 ${results.length} 筆)`;
+            }
+        }
+
+        function highlight(text, query) {
+            if (!query) return text;
+            const regex = new RegExp(`(${query})`, 'gi');
+            return text.replace(regex, '<mark style="background:#fef08a; padding:0 2px">$1</mark>');
+        }
+
+        function performSearch() {
+            const query = searchInput.value.trim().toLowerCase();
+            if (!query) {
+                resultsTable.style.display = 'none';
+                messageDiv.style.display = 'block';
+                messageDiv.innerText = '請輸入關鍵字開始搜尋';
+                return;
+            }
+
+            const results = [];
+            const dataSources = [{data: activeData, isHistory: false}];
+            if (historyToggle.checked) dataSources.push({data: historyData, isHistory: true});
+
+            dataSources.forEach(source => {
+                for (const [id, info] of Object.entries(source.data)) {
+                    const name = info.機關名稱 || "";
+                    const parent = info.主管名稱 || "";
+                    const city = info.縣市 || "";
+                    const official_id = info.機關代碼 || "";
+
+                    if (
+                        name.toLowerCase().includes(query) ||
+                        parent.toLowerCase().includes(query) ||
+                        id.toLowerCase().includes(query) ||
+                        official_id.toLowerCase().includes(query) ||
+                        city.includes(query)
+                    ) {
+                        results.push({
+                            pcc_id: id,
+                            name: name,
+                            parent: parent,
+                            city: city,
+                            official_id: official_id,
+                            isHistory: source.isHistory
+                        });
+                    }
+                }
+            });
+            renderResults(results);
+        }
+
+        searchInput.addEventListener('input', performSearch);
+        historyToggle.addEventListener('change', async () => {
+            if (historyToggle.checked) {
+                await loadHistory();
+            }
+            performSearch();
+        });
+
+        init();
+    </script>
+</body>
+</html>
