@@ -1,4 +1,4 @@
-name: Daily Agency Dictionary Sync
+name: Daily PCC Explorer Sync
 
 on:
   schedule:
@@ -21,13 +21,16 @@ jobs:
         run: |
           pip install requests
 
-      - name: Sync and Clean Agency Dictionary
+      - name: Step 1 - Sync Agency Dictionary
         run: python orglist/sync_orgs_and_clean.py
+
+      - name: Step 2 - Fetch Daily Tender Data
+        run: python pcc_crawler.py
 
       - name: Commit and Push changes
         run: |
           git config --local user.email "action@github.com"
           git config --local user.name "GitHub Action"
           git add .
-          git commit -m "Auto-sync agency dictionary [$(date +'%Y-%m-%d')]" || exit 0
+          git commit -m "Automated Daily Sync: Dictionary & Tenders [$(date +'%Y-%m-%d')]" || exit 0
           git push
