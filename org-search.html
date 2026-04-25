@@ -205,9 +205,15 @@
 
         function renderResults(results) {
             resultsBody.innerHTML = '';
+            
+            const baseStatus = isHistoryLoaded 
+                ? `資料庫完整就緒 (現役: ${Object.keys(activeData).length} / 歷史: ${Object.keys(historyData).length})`
+                : `現役機關已就緒 (${Object.keys(activeData).length} 筆)`;
+
             if (results.length === 0) {
                 resultsTable.style.display = 'none';
                 messageDiv.innerHTML = '<div class="empty-state">找不到相關機關。</div>';
+                statusDiv.innerText = baseStatus;
                 return;
             }
 
@@ -227,9 +233,8 @@
                 resultsBody.appendChild(tr);
             });
 
-            if (results.length > 200) {
-                statusDiv.innerText += ` (顯示前 200 筆，總計 ${results.length} 筆)`;
-            }
+            const countInfo = ` (顯示前 ${Math.min(results.length, 200)} 筆，總計 ${results.length} 筆)`;
+            statusDiv.innerText = baseStatus + countInfo;
         }
 
         function highlight(text, query) {
