@@ -4,7 +4,11 @@
 
 ## 📊 字典同步狀態
 *   **官方機關名冊日期**：20260302
-*   **系統最後檢查時間**：20260425
+*   **系統最後檢測時間**：20260425
+
+## 🔎 快搜入口
+*   **線上機關快搜**：[org-search.html](https://alen84204.github.io/pcc-explorer/org-search.html)
+*   **資料位置說明**：`orglist/` 保留作為機關字典資料模組；公開搜尋頁維持在根目錄 `org-search.html`，避免破壞既有 GitHub Pages 網址與 JSON 讀取路徑。
 
 ## ✨ 核心功能特點 (Features)
 

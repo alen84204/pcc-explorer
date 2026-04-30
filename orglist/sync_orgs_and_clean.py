@@ -1,7 +1,7 @@
 """
 PCC Proactive Dictionary Manager
 Version: v2.5 (v4.25.20)
-Function: Dual-README update (Root & Orglist).
+Function: Dual-README and org-search status update.
 """
 import requests
 import json
@@ -18,6 +18,7 @@ ACTIVE_FILE = os.path.join(BASE_DIR, 'units_Active.json')
 HISTORY_FILE = os.path.join(BASE_DIR, 'units_History.json')
 ORG_README = os.path.join(BASE_DIR, 'README.md')
 ROOT_README = os.path.join(ROOT_DIR, 'README.md')
+ORG_SEARCH_HTML = os.path.join(ROOT_DIR, 'org-search.html')
 
 def convert_id_standard(oid):
     if not oid or len(oid) < 9: return oid
@@ -44,8 +45,16 @@ def update_all_readmes(official_date):
         with open(ORG_README, 'r', encoding='utf-8') as f:
             c = f.read()
         c = re.sub(r'官方機關名冊日期：\d{8}', f'官方機關名冊日期：{official_date}', c)
-        c = re.sub(r'系統最後檢查時間：\d{8}', f'系統最後檢查時間：{today_str}', c)
+        c = re.sub(r'系統最後(?:檢查|檢測)時間：\d{8}', f'系統最後檢測時間：{today_str}', c)
         with open(ORG_README, 'w', encoding='utf-8') as f: f.write(c)
+
+    # 3. 更新機關快搜頁面，讓使用者打開頁面就能看見資料新鮮度
+    if os.path.exists(ORG_SEARCH_HTML):
+        with open(ORG_SEARCH_HTML, 'r', encoding='utf-8') as f:
+            c = f.read()
+        c = re.sub(r'官方機關名冊日期：\d{8}', f'官方機關名冊日期：{official_date}', c)
+        c = re.sub(r'系統最後(?:檢查|檢測)時間：\d{8}', f'系統最後檢測時間：{today_str}', c)
+        with open(ORG_SEARCH_HTML, 'w', encoding='utf-8') as f: f.write(c)
     print(f"README 更新完成 (官方: {official_date}, 運行: {today_str})")
 
 def auto_update_dictionary():
