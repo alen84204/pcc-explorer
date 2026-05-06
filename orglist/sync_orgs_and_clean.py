@@ -36,24 +36,24 @@ def update_all_readmes(official_date):
     if os.path.exists(ROOT_README):
         with open(ROOT_README, 'r', encoding='utf-8') as f:
             c = f.read()
-        c = re.sub(r'官方機關名冊日期：\d{8}', f'官方機關名冊日期：{official_date}', c)
-        c = re.sub(r'系統最後運行時間：\d{8}', f'系統最後運行時間：{today_str}', c)
+        c = re.sub(r'(官方機關名冊日期(?:\*\*)?：)\d{8}', rf'\g<1>{official_date}', c)
+        c = re.sub(r'(系統最後運行時間(?:\*\*)?：)\d{8}', rf'\g<1>{today_str}', c)
         with open(ROOT_README, 'w', encoding='utf-8') as f: f.write(c)
     
     # 2. 更新 Sub README
     if os.path.exists(ORG_README):
         with open(ORG_README, 'r', encoding='utf-8') as f:
             c = f.read()
-        c = re.sub(r'官方機關名冊日期：\d{8}', f'官方機關名冊日期：{official_date}', c)
-        c = re.sub(r'系統最後(?:檢查|檢測)時間：\d{8}', f'系統最後檢測時間：{today_str}', c)
+        c = re.sub(r'(官方機關名冊日期(?:\*\*)?：)\d{8}', rf'\g<1>{official_date}', c)
+        c = re.sub(r'(系統最後(?:檢查|檢測)時間(?:\*\*)?：)\d{8}', rf'\g<1>{today_str}', c)
         with open(ORG_README, 'w', encoding='utf-8') as f: f.write(c)
 
     # 3. 更新機關快搜頁面，讓使用者打開頁面就能看見資料新鮮度
     if os.path.exists(ORG_SEARCH_HTML):
         with open(ORG_SEARCH_HTML, 'r', encoding='utf-8') as f:
             c = f.read()
-        c = re.sub(r'官方機關名冊日期：\d{8}', f'官方機關名冊日期：{official_date}', c)
-        c = re.sub(r'系統最後(?:檢查|檢測)時間：\d{8}', f'系統最後檢測時間：{today_str}', c)
+        c = re.sub(r'(官方機關名冊日期(?:\*\*)?：)\d{8}', rf'\g<1>{official_date}', c)
+        c = re.sub(r'(系統最後(?:檢查|檢測)時間(?:\*\*)?：)\d{8}', rf'\g<1>{today_str}', c)
         with open(ORG_SEARCH_HTML, 'w', encoding='utf-8') as f: f.write(c)
     print(f"README 更新完成 (官方: {official_date}, 運行: {today_str})")
 

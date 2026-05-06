@@ -27,8 +27,8 @@ def update_root_readme(tender_date):
     if os.path.exists(ROOT_README):
         with open(ROOT_README, 'r', encoding='utf-8') as f:
             c = f.read()
-        c = re.sub(r'最新標案日期：\d{8}', f'最新標案日期：{tender_date}', c)
-        c = re.sub(r'系統最後運行時間：\d{8}', f'系統最後運行時間：{today_str}', c)
+        c = re.sub(r'(最新標案日期(?:\*\*)?：)\d{8}', rf'\g<1>{tender_date}', c)
+        c = re.sub(r'(系統最後運行時間(?:\*\*)?：)\d{8}', rf'\g<1>{today_str}', c)
         with open(ROOT_README, 'w', encoding='utf-8') as f:
             f.write(c)
         print(f"根目錄 README 已更新 (標案: {tender_date}, 運行: {today_str})")
