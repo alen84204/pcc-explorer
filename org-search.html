@@ -27,24 +27,24 @@
         }
 
         .container {
-            max-width: 1000px;
+            max-width: 1200px;
             margin: 0 auto;
         }
 
         header {
             text-align: center;
-            margin-bottom: 2rem;
+            margin-bottom: 1.5rem;
         }
 
         h1 { font-weight: 700; color: var(--primary); margin-bottom: 0.5rem; }
-        .subtitle { color: var(--text-muted); font-size: 0.95rem; }
+        .subtitle { color: var(--text-muted); font-size: 0.95rem; margin-bottom: 1rem; }
 
         .sync-meta {
             display: flex;
             justify-content: center;
             flex-wrap: wrap;
             gap: 0.75rem;
-            margin-top: 1rem;
+            margin-top: 0.75rem;
             color: var(--text-muted);
             font-size: 0.85rem;
         }
@@ -59,10 +59,10 @@
 
         .search-section {
             background: var(--card-bg);
-            padding: 2rem;
+            padding: 1.5rem;
             border-radius: 1rem;
             box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);
-            margin-bottom: 2rem;
+            margin-bottom: 1rem;
         }
 
         .search-group {
@@ -73,7 +73,7 @@
 
         #search-input {
             flex: 1;
-            padding: 0.75rem 1.25rem;
+            padding: 0.85rem 1rem;
             border: 2px solid var(--border);
             border-radius: 0.5rem;
             font-size: 1rem;
@@ -86,17 +86,35 @@
             box-shadow: 0 0 0 4px var(--active-glow);
         }
 
+        .options {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1rem 1.5rem;
+            align-items: center;
+            color: var(--text-muted);
+            font-size: 0.92rem;
+            margin-bottom: 0.75rem;
+        }
+
         .toggle-group {
             display: flex;
             align-items: center;
             gap: 0.5rem;
-            font-size: 0.9rem;
-            color: var(--text-muted);
             user-select: none;
             cursor: pointer;
         }
 
-        /* Table Styles */
+        .help-text {
+            color: var(--text-muted);
+            font-size: 0.84rem;
+        }
+
+        .status-line {
+            margin: 0.75rem 0 0.5rem;
+            font-size: 0.85rem;
+            color: var(--text-muted);
+        }
+
         .results-table {
             width: 100%;
             border-collapse: collapse;
@@ -114,12 +132,30 @@
             color: var(--text-muted);
             font-weight: 600;
             border-bottom: 2px solid var(--border);
+            white-space: nowrap;
+        }
+
+        .sortable {
+            cursor: pointer;
+            user-select: none;
+        }
+
+        .sortable:hover {
+            color: var(--primary);
+        }
+
+        .sort-indicator {
+            display: inline-block;
+            margin-left: 0.25rem;
+            color: var(--primary);
+            font-size: 0.8rem;
         }
 
         .results-table td {
             padding: 1rem;
             border-bottom: 1px solid var(--border);
             font-size: 0.9rem;
+            vertical-align: top;
         }
 
         .results-table tr:hover { background: #f8fafc; }
@@ -139,18 +175,44 @@
             padding: 0.1rem 0.4rem;
             border-radius: 0.25rem;
             color: var(--primary);
+            white-space: nowrap;
         }
 
-        .loading {
+        .loading, .empty-state {
             text-align: center;
-            padding: 4rem;
+            padding: 3rem 1rem;
             color: var(--text-muted);
         }
 
-        .empty-state {
-            text-align: center;
-            padding: 4rem;
+        .footer-meta {
+            margin-top: 1.5rem;
+            padding-top: 1rem;
+            border-top: 1px solid var(--border);
             color: var(--text-muted);
+            font-size: 0.85rem;
+            line-height: 1.8;
+        }
+
+        .footer-meta .line {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.75rem 1.5rem;
+        }
+
+        mark {
+            background: #fef08a;
+            padding: 0 2px;
+            border-radius: 2px;
+        }
+
+        @media (max-width: 860px) {
+            body { padding: 1rem; }
+            .search-group { flex-direction: column; }
+            .results-table {
+                display: block;
+                overflow-x: auto;
+                white-space: nowrap;
+            }
         }
     </style>
 </head>
@@ -160,59 +222,136 @@
             <h1>PCC Explorer 機關快搜</h1>
             <p class="subtitle">輸入機關名稱、主管單位、縣市或代碼，即時檢索全台機關百科</p>
             <div class="sync-meta" aria-label="字典同步狀態">
-                <span>官方機關名冊日期：20260302</span>
-                <span>系統最後檢測時間：20260507</span>
+                <span id="meta-check-time">系統最後檢測時間：20260507 01:00</span>
+                <span id="meta-official-date">官方機關名冊最新日期：20260302</span>
+                <span id="meta-active-count">現役機關數量：--</span>
+                <span id="meta-history-count">歷史機關數量：--</span>
             </div>
         </header>
 
         <div class="search-section">
             <div class="search-group">
-                <input type="text" id="search-input" placeholder="試試搜尋「農業部」、「新北市」或「3.10.35」..." autocomplete="off">
+                <input type="text" id="search-input" placeholder="試試搜尋「農業部」、「海委會」、「台北」或「3.10.35」..." autocomplete="off">
             </div>
-            <label class="toggle-group">
-                <input type="checkbox" id="toggle-history"> 包含已裁撤/改組之歷史機關
-            </label>
+            <div class="options">
+                <label class="toggle-group">
+                    <input type="checkbox" id="toggle-history"> 包含已裁撤/改組之歷史機關
+                </label>
+                <label class="toggle-group">
+                    <input type="checkbox" id="toggle-fuzzy"> 模糊搜尋
+                </label>
+            </div>
+            <div class="help-text">模糊搜尋可讓「海委會」找到「海洋委員會」，「台北」找到「臺北」。</div>
         </div>
 
-        <div id="status" style="margin-bottom: 0.5rem; font-size: 0.85rem; color: var(--text-muted);">正在初始化資料庫...</div>
+        <div id="status" class="status-line">正在初始化資料庫...</div>
         
         <table class="results-table" id="results-table" style="display: none;">
             <thead>
                 <tr>
                     <th>狀態</th>
-                    <th>招標代碼 (PCC)</th>
-                    <th>機關名稱</th>
-                    <th>主管單位</th>
-                    <th>縣市</th>
-                    <th>官方代碼</th>
+                    <th class="sortable" data-sort="pcc_id">招標代碼 (PCC) <span class="sort-indicator" data-sort-indicator="pcc_id"></span></th>
+                    <th class="sortable" data-sort="name">機關名稱 <span class="sort-indicator" data-sort-indicator="name"></span></th>
+                    <th class="sortable" data-sort="parent">主管單位 <span class="sort-indicator" data-sort-indicator="parent"></span></th>
+                    <th class="sortable" data-sort="city">縣市 <span class="sort-indicator" data-sort-indicator="city"></span></th>
+                    <th class="sortable" data-sort="official_id">官方代碼 <span class="sort-indicator" data-sort-indicator="official_id"></span></th>
                 </tr>
             </thead>
             <tbody id="results-body"></tbody>
         </table>
 
         <div id="message" class="loading">正在讀取機關字典...</div>
+
+        <div class="footer-meta">
+            <div class="line">
+                <span>資料來源：DGPA 官方機關名冊</span>
+                <span>更新頻率 / 更新時間：每天 3 次（01:00 / 09:00 / 17:00）</span>
+            </div>
+        </div>
     </div>
 
     <script>
         let activeData = {};
         let historyData = {};
         let isHistoryLoaded = false;
+        let sortState = { field: 'name', direction: 'asc' };
 
         const searchInput = document.getElementById('search-input');
         const historyToggle = document.getElementById('toggle-history');
+        const fuzzyToggle = document.getElementById('toggle-fuzzy');
         const resultsTable = document.getElementById('results-table');
         const resultsBody = document.getElementById('results-body');
         const messageDiv = document.getElementById('message');
         const statusDiv = document.getElementById('status');
+        const metaCheckTime = document.getElementById('meta-check-time');
+        const metaOfficialDate = document.getElementById('meta-official-date');
+        const activeCountMeta = document.getElementById('meta-active-count');
+        const historyCountMeta = document.getElementById('meta-history-count');
+
+        function normalizeText(value) {
+            return (value || '')
+                .normalize('NFKC')
+                .replace(/臺/g, '台')
+                .toLowerCase()
+                .replace(/[\s\u3000]+/g, '')
+                .replace(/[‐‑–—~～、，,．。·'"“”’()（）【】\[\]{}<>《》:：;；/\\_-]/g, '');
+        }
+
+        function escapeRegExp(value) {
+            return (value || '').replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+        }
+
+        function fuzzyMatch(query, target) {
+            const q = normalizeText(query);
+            const t = normalizeText(target);
+            if (!q) return false;
+            if (t.includes(q)) return true;
+
+            let ti = 0;
+            for (const ch of q) {
+                ti = t.indexOf(ch, ti);
+                if (ti === -1) return false;
+                ti += 1;
+            }
+            return true;
+        }
+
+        function includesMatch(query, target) {
+            const q = compactText(query);
+            const t = compactText(target);
+            return t.includes(q);
+        }
 
         async function init() {
             try {
+                try {
+                    const manifestRes = await fetch('orglist/manifest.json');
+                    if (manifestRes.ok) {
+                        const manifest = await manifestRes.json();
+                        if (manifest.system_last_checked) metaCheckTime.innerText = `系統最後檢測時間：${manifest.system_last_checked}`;
+                        if (manifest.official_date) metaOfficialDate.innerText = `官方機關名冊最新日期：${manifest.official_date}`;
+                    }
+                } catch (manifestError) {
+                    // keep built-in defaults when manifest is unavailable
+                }
+
                 const res = await fetch('orglist/units_Active.json');
                 activeData = await res.json();
+                activeCountMeta.innerText = `現役機關數量：${Object.keys(activeData).length}`;
                 statusDiv.innerText = `現役機關已就緒 (${Object.keys(activeData).length} 筆)`;
                 messageDiv.innerText = '請輸入關鍵字開始搜尋';
+
+                try {
+                    const historyRes = await fetch('orglist/units_History.json');
+                    historyData = await historyRes.json();
+                    isHistoryLoaded = true;
+                    historyCountMeta.innerText = `歷史機關數量：${Object.keys(historyData).length}`;
+                } catch (historyError) {
+                    historyCountMeta.innerText = '歷史機關數量：--';
+                }
             } catch (e) {
                 messageDiv.innerText = '讀取失敗，請確認 orglist/ 內有字典檔。';
+                statusDiv.innerText = '資料初始化失敗';
             }
         }
 
@@ -222,18 +361,91 @@
             const res = await fetch('orglist/units_History.json');
             historyData = await res.json();
             isHistoryLoaded = true;
+            historyCountMeta.innerText = `歷史機關數量：${Object.keys(historyData).length}`;
             statusDiv.innerText = `資料庫完整就緒 (現役: ${Object.keys(activeData).length} / 歷史: ${Object.keys(historyData).length})`;
         }
 
-        function renderResults(results) {
+        function buildCorpus(info) {
+            return [
+                info.機關名稱 || '',
+                info.主管名稱 || '',
+                info.縣市 || '',
+                info.機關代碼 || '',
+                info.aliases ? info.aliases.join(' ') : ''
+            ].join(' | ');
+        }
+
+        function matchesQuery(info, query) {
+            const rawCorpus = buildCorpus(info);
+            if (!fuzzyToggle.checked) {
+                return includesMatch(query, rawCorpus);
+            }
+            return fuzzyMatch(query, rawCorpus) || fuzzyMatch(query, normalizeText(rawCorpus));
+        }
+
+        function collectResults(query) {
+            const results = [];
+            const dataSources = [{ data: activeData, isHistory: false }];
+            if (historyToggle.checked) dataSources.push({ data: historyData, isHistory: true });
+
+            dataSources.forEach(source => {
+                for (const [id, info] of Object.entries(source.data)) {
+                    if (!info) continue;
+                    if (matchesQuery(info, query) || matchesQuery({ 
+                        機關名稱: id, 主管名稱: info.主管名稱, 縣市: info.縣市, 機關代碼: info.機關代碼
+                    }, query)) {
+                        results.push({
+                            pcc_id: id,
+                            name: info.機關名稱 || '',
+                            parent: info.主管名稱 || '',
+                            city: info.縣市 || '',
+                            official_id: info.機關代碼 || '',
+                            aliases: Array.isArray(info.aliases) ? info.aliases : [],
+                            isHistory: source.isHistory
+                        });
+                    }
+                }
+            });
+
+            return results;
+        }
+
+        function compareValues(a, b, field) {
+            const av = (a[field] || '').toString();
+            const bv = (b[field] || '').toString();
+            return av.localeCompare(bv, 'zh-Hant', { numeric: true, sensitivity: 'base' });
+        }
+
+        function sortResults(results) {
+            const { field, direction } = sortState;
+            const factor = direction === 'asc' ? 1 : -1;
+            return results.sort((a, b) => {
+                const primary = compareValues(a, b, field);
+                if (primary !== 0) return primary * factor;
+                return compareValues(a, b, 'name');
+            });
+        }
+
+        function updateSortIndicators() {
+            document.querySelectorAll('[data-sort-indicator]').forEach(el => {
+                const field = el.getAttribute('data-sort-indicator');
+                if (field === sortState.field) {
+                    el.innerText = sortState.direction === 'asc' ? '▲' : '▼';
+                } else {
+                    el.innerText = '';
+                }
+            });
+        }
+
+        function renderResults(results, query) {
             resultsBody.innerHTML = '';
-            
             const baseStatus = isHistoryLoaded 
                 ? `資料庫完整就緒 (現役: ${Object.keys(activeData).length} / 歷史: ${Object.keys(historyData).length})`
                 : `現役機關已就緒 (${Object.keys(activeData).length} 筆)`;
 
             if (results.length === 0) {
                 resultsTable.style.display = 'none';
+                messageDiv.style.display = 'block';
                 messageDiv.innerHTML = '<div class="empty-state">找不到相關機關。</div>';
                 statusDiv.innerText = baseStatus;
                 return;
@@ -241,70 +453,59 @@
 
             resultsTable.style.display = 'table';
             messageDiv.style.display = 'none';
+            updateSortIndicators();
 
-            results.slice(0, 200).forEach(item => {
+            const sortedResults = sortResults(results.slice());
+            const limited = sortedResults.slice(0, 200);
+            const reg = query ? new RegExp(escapeRegExp(query), 'ig') : null;
+
+            limited.forEach(item => {
                 const tr = document.createElement('tr');
+                const displayName = reg ? item.name.replace(reg, match => `<mark>${match}</mark>`) : item.name;
+                const displayParent = reg ? item.parent.replace(reg, match => `<mark>${match}</mark>`) : item.parent;
                 tr.innerHTML = `
                     <td><span class="tag ${item.isHistory ? 'tag-history' : 'tag-active'}">${item.isHistory ? '歷史' : '現役'}</span></td>
                     <td><span class="code-pill">${item.pcc_id}</span></td>
-                    <td style="font-weight:600">${highlight(item.name, searchInput.value)}</td>
-                    <td style="font-size:0.8rem">${highlight(item.parent, searchInput.value)}</td>
+                    <td style="font-weight:600">${displayName}</td>
+                    <td style="font-size:0.8rem">${displayParent}</td>
                     <td>${item.city}</td>
                     <td style="font-size:0.8rem; color:var(--text-muted)">${item.official_id}</td>
                 `;
                 resultsBody.appendChild(tr);
             });
 
-            const countInfo = ` (顯示前 ${Math.min(results.length, 200)} 筆，總計 ${results.length} 筆)`;
+            const countInfo = ` (顯示前 ${limited.length} 筆，總計 ${results.length} 筆)`;
             statusDiv.innerText = baseStatus + countInfo;
         }
 
-        function highlight(text, query) {
-            if (!query) return text;
-            const regex = new RegExp(`(${query})`, 'gi');
-            return text.replace(regex, '<mark style="background:#fef08a; padding:0 2px">$1</mark>');
-        }
-
         function performSearch() {
-            const query = searchInput.value.trim().toLowerCase();
+            const query = searchInput.value.trim();
             if (!query) {
                 resultsTable.style.display = 'none';
                 messageDiv.style.display = 'block';
                 messageDiv.innerText = '請輸入關鍵字開始搜尋';
+                statusDiv.innerText = isHistoryLoaded 
+                    ? `資料庫完整就緒 (現役: ${Object.keys(activeData).length} / 歷史: ${Object.keys(historyData).length})`
+                    : `現役機關已就緒 (${Object.keys(activeData).length} 筆)`;
                 return;
             }
 
-            const results = [];
-            const dataSources = [{data: activeData, isHistory: false}];
-            if (historyToggle.checked) dataSources.push({data: historyData, isHistory: true});
-
-            dataSources.forEach(source => {
-                for (const [id, info] of Object.entries(source.data)) {
-                    const name = info.機關名稱 || "";
-                    const parent = info.主管名稱 || "";
-                    const city = info.縣市 || "";
-                    const official_id = info.機關代碼 || "";
-
-                    if (
-                        name.toLowerCase().includes(query) ||
-                        parent.toLowerCase().includes(query) ||
-                        id.toLowerCase().includes(query) ||
-                        official_id.toLowerCase().includes(query) ||
-                        city.includes(query)
-                    ) {
-                        results.push({
-                            pcc_id: id,
-                            name: name,
-                            parent: parent,
-                            city: city,
-                            official_id: official_id,
-                            isHistory: source.isHistory
-                        });
-                    }
-                }
-            });
-            renderResults(results);
+            const results = collectResults(query);
+            renderResults(results, query);
         }
+
+        document.querySelectorAll('[data-sort]').forEach(th => {
+            th.addEventListener('click', () => {
+                const field = th.getAttribute('data-sort');
+                if (sortState.field === field) {
+                    sortState.direction = sortState.direction === 'asc' ? 'desc' : 'asc';
+                } else {
+                    sortState.field = field;
+                    sortState.direction = 'asc';
+                }
+                performSearch();
+            });
+        });
 
         searchInput.addEventListener('input', performSearch);
         historyToggle.addEventListener('change', async () => {
@@ -313,6 +514,7 @@
             }
             performSearch();
         });
+        fuzzyToggle.addEventListener('change', performSearch);
 
         init();
     </script>

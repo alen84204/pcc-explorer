@@ -20,7 +20,7 @@
 - **`orglist/`**：機關字典管理核心。
     - `units_Active.json`：現役機關全規格資料。
     - `units_History.json`：歷史機關全規格資料。
-    - `clean_dictionary.py`：具備官方日期偵測與自動下載功能之維護工具。
+    - `sync_orgs_and_clean.py`：具備官方日期偵測、同步、manifest 輸出與 README 更新功能之維護工具。
 - **`data.json`**：供前端看板使用的當日全量原始數據。
 
 ### C. 視覺化看板 (index.html)

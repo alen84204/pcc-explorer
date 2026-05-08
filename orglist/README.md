@@ -3,8 +3,9 @@
 本資料夾負責管理並維護政府標案系統的機關代碼對照表。
 
 ## 📊 字典同步狀態
-*   **官方機關名冊日期**：20260302
-*   **系統最後檢測時間**：20260507
+*   **官方機關名冊最新日期**：20260302
+*   **系統最後檢測時間**：20260507 01:00
+*   **同步摘要**：`manifest.json` 會集中記錄來源檔、查核時間、檔案大小與 MD5。
 
 ## 🔎 快搜入口
 *   **線上機關快搜**：[org-search.html](https://alen84204.github.io/pcc-explorer/org-search.html)
@@ -32,17 +33,21 @@
 *   **結構清晰**：功能模組化設計，可獨立於主爬蟲系統運行。
 
 ## 1. 資料來源 (Data Source)
-*   **官方來源**：[行政院人事行政總處 - 機關代碼資料集](https://data.gov.tw/dataset/7307)
-*   **自動下載網址**：`https://www.dgpa.gov.tw/open/code/orglist.csv`
+*   **官方來源入口**：[行政院人事行政總處 - 機關代碼資料集](https://data.gov.tw/dataset/7307)
+*   **正式來源**：`https://www.dgpa.gov.tw/open/code/orglist.csv`（CSV 為唯一正式來源）
+*   **官方快照**：`orglist_20260302.json`（保留檔／輔助檔，不視為正式來源）
 
 ## 2. 代碼轉換規則
 1. A19050100G -> A.19.5.1 (移除子段落前導零與末尾段落00)
 2. 310350000Q -> 3.10.35
 
 ## 3. 資料結構
-*   `units_Active.json`：現役機關百科。
-*   `units_History.json`：歷史機關百科。
+*   `orglist_20260302.csv`：官方正式來源檔。
+*   `orglist_20260302.json`：官方快照檔。
+*   `units_Active.json`：現役機關 lookup。
+*   `units_History.json`：歷史機關 lookup。
+*   `manifest.json`：同步清單／資料清單，記錄來源、檔案大小與 MD5。
 
 ## 4. 維護方式 (Maintenance)
 本模組已整合至 **GitHub Actions** 自動化流程中。
-系統會於每日凌晨自動執行 `orglist/sync_orgs_and_clean.py`，偵測官方伺服器之 `Last-Modified` 標頭。若有更新即自動同步。
+系統會於每日凌晨自動執行 `orglist/sync_orgs_and_clean.py`，偵測官方伺服器之 `Last-Modified` 標頭。若有更新即自動同步。`manifest.json` 會同步提供頁面查核資訊。
