@@ -32,29 +32,46 @@
         }
 
         header {
-            text-align: center;
             margin-bottom: 1.5rem;
         }
 
+        .header-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            gap: 1rem;
+            flex-wrap: wrap;
+        }
+
+        .header-copy {
+            flex: 1 1 320px;
+            min-width: 0;
+        }
+
         h1 { font-weight: 700; color: var(--primary); margin-bottom: 0.5rem; }
-        .subtitle { color: var(--text-muted); font-size: 0.95rem; margin-bottom: 1rem; }
+        .subtitle { color: var(--text-muted); font-size: 0.95rem; margin-bottom: 0.25rem; }
 
         .sync-meta {
-            display: flex;
-            justify-content: center;
-            flex-wrap: wrap;
-            gap: 0.75rem;
-            margin-top: 0.75rem;
+            display: grid;
+            grid-template-columns: repeat(2, max-content);
+            justify-content: end;
+            gap: 0.55rem 0.7rem;
+            margin-top: 0.15rem;
             color: var(--text-muted);
-            font-size: 0.85rem;
+            font-size: 0.84rem;
+            text-align: right;
         }
 
         .sync-meta span {
+            display: inline-flex;
+            align-items: center;
+            justify-content: flex-end;
             background: #eff6ff;
             border: 1px solid #bfdbfe;
             color: #1e40af;
             border-radius: 999px;
             padding: 0.35rem 0.75rem;
+            white-space: nowrap;
         }
 
         .search-section {
@@ -219,13 +236,17 @@
 <body>
     <div class="container">
         <header>
-            <h1>PCC Explorer 機關快搜</h1>
-            <p class="subtitle">輸入機關名稱、主管單位、縣市或代碼，即時檢索全台機關百科</p>
-            <div class="sync-meta" aria-label="字典同步狀態">
-                <span id="meta-check-time">系統最後檢測時間：20260507 01:00</span>
-                <span id="meta-official-date">官方機關名冊最新日期：20260302</span>
-                <span id="meta-active-count">現役機關數量：--</span>
-                <span id="meta-history-count">歷史機關數量：--</span>
+            <div class="header-bar">
+                <div class="header-copy">
+                    <h1>PCC Explorer 機關快搜</h1>
+                    <p class="subtitle">輸入機關名稱、主管單位、縣市或代碼，即時檢索全台機關百科</p>
+                </div>
+                <div class="sync-meta" aria-label="字典同步狀態">
+                    <span id="meta-check-time">系統最後檢測時間：20260507 01:00</span>
+                    <span id="meta-official-date">官方機關名冊最新日期：20260302</span>
+                    <span id="meta-active-count">現役機關數量：--</span>
+                    <span id="meta-history-count">歷史機關數量：--</span>
+                </div>
             </div>
         </header>
 
@@ -293,8 +314,39 @@
                 .normalize('NFKC')
                 .replace(/臺/g, '台')
                 .toLowerCase()
+                .replace(/[\s\u3000]+/g, ' ')
+                .trim();
+        }
+
+        function compactText(value) {
+            return normalizeText(value)
                 .replace(/[\s\u3000]+/g, '')
                 .replace(/[‐‑–—~～、，,．。·'"“”’()（）【】\[\]{}<>《》:：;；/\\_-]/g, '');
+        }
+
+        const QUERY_ALIASES = {
+            '農業會': ['農業部', '農業委員會', '農委會'],
+            '農委會': ['農業部', '農業委員會'],
+            '海委會': ['海洋委員會'],
+        };
+
+        function expandQueryVariants(query) {
+            const variants = new Set();
+            const raw = query || '';
+            const normalized = normalizeText(raw);
+            const compact = compactText(raw);
+
+            [raw, normalized, compact].forEach(v => {
+                if (v) variants.add(v);
+            });
+
+            for (const [alias, targets] of Object.entries(QUERY_ALIASES)) {
+                if (compactText(alias) === compact) {
+                    targets.forEach(v => variants.add(v));
+                }
+            }
+
+            return [...variants];
         }
 
         function escapeRegExp(value) {
@@ -319,7 +371,7 @@
         function includesMatch(query, target) {
             const q = compactText(query);
             const t = compactText(target);
-            return t.includes(q);
+            return q ? t.includes(q) : false;
         }
 
         async function init() {
@@ -377,10 +429,11 @@
 
         function matchesQuery(info, query) {
             const rawCorpus = buildCorpus(info);
+            const variants = expandQueryVariants(query);
             if (!fuzzyToggle.checked) {
-                return includesMatch(query, rawCorpus);
+                return variants.some(v => includesMatch(v, rawCorpus));
             }
-            return fuzzyMatch(query, rawCorpus) || fuzzyMatch(query, normalizeText(rawCorpus));
+            return variants.some(v => fuzzyMatch(v, rawCorpus) || fuzzyMatch(v, normalizeText(rawCorpus)));
         }
 
         function collectResults(query) {
