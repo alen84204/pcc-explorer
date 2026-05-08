@@ -324,31 +324,6 @@
                 .replace(/[‐‑–—~～、，,．。·'"“”’()（）【】\[\]{}<>《》:：;；/\\_-]/g, '');
         }
 
-        const QUERY_ALIASES = {
-            '農業會': ['農業部', '農業委員會', '農委會'],
-            '農委會': ['農業部', '農業委員會'],
-            '海委會': ['海洋委員會'],
-        };
-
-        function expandQueryVariants(query) {
-            const variants = new Set();
-            const raw = query || '';
-            const normalized = normalizeText(raw);
-            const compact = compactText(raw);
-
-            [raw, normalized, compact].forEach(v => {
-                if (v) variants.add(v);
-            });
-
-            for (const [alias, targets] of Object.entries(QUERY_ALIASES)) {
-                if (compactText(alias) === compact) {
-                    targets.forEach(v => variants.add(v));
-                }
-            }
-
-            return [...variants];
-        }
-
         function escapeRegExp(value) {
             return (value || '').replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
         }
@@ -429,11 +404,10 @@
 
         function matchesQuery(info, query) {
             const rawCorpus = buildCorpus(info);
-            const variants = expandQueryVariants(query);
             if (!fuzzyToggle.checked) {
-                return variants.some(v => includesMatch(v, rawCorpus));
+                return includesMatch(query, rawCorpus);
             }
-            return variants.some(v => fuzzyMatch(v, rawCorpus) || fuzzyMatch(v, normalizeText(rawCorpus)));
+            return fuzzyMatch(query, rawCorpus) || fuzzyMatch(query, normalizeText(rawCorpus));
         }
 
         function collectResults(query) {
