@@ -1,0 +1,39 @@
+name: Sync Daily Tenders
+
+on:
+  workflow_run:
+    workflows: ["Sync Orglist Dictionary"]
+    types:
+      - completed
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  sync-tenders:
+    if: ${{ github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success' }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
+
+      - name: Install dependencies
+        run: |
+          pip install requests
+
+      - name: Fetch daily tender data
+        run: python pcc_crawler.py
+
+      - name: Commit and push tender updates
+        run: |
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+          git add data.json README.md
+          git commit -m "Automated Daily Tenders [$(date +'%Y-%m-%d')]" || exit 0
+          git push

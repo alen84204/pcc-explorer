@@ -52,5 +52,5 @@
 * `manifest.json`：同步清單／資料清單，記錄來源、更新頻率、檔案大小與 MD5。
 
 ## 4. 維護方式
-本模組已整合至 **GitHub Actions** 自動化流程中。
+本模組由獨立的 **GitHub Actions workflow** 維護：`.github/workflows/orglist_sync.yml`。
 系統會於每天台灣時間（UTC+8）05:00 自動執行 `orglist/sync_orgs_and_clean.py`，偵測官方伺服器之 `Last-Modified` 標頭。若有更新即自動同步。`manifest.json` 會提供頁面查核資訊；對外資料取用請優先使用 `orgs_active_min.json` 與 `orgs_history_min.json`。

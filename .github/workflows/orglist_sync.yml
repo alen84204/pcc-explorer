@@ -1,4 +1,4 @@
-name: Daily PCC Explorer Sync
+name: Sync Orglist Dictionary
 
 on:
   schedule:
@@ -9,14 +9,14 @@ permissions:
   contents: write
 
 jobs:
-  build:
+  sync-orglist:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout Code
-        uses: actions/checkout@v3
+      - name: Checkout code
+        uses: actions/checkout@v4
 
       - name: Set up Python
-        uses: actions/setup-python@v4
+        uses: actions/setup-python@v5
         with:
           python-version: '3.10'
 
@@ -24,16 +24,13 @@ jobs:
         run: |
           pip install requests
 
-      - name: Step 1 - Sync Agency Dictionary
+      - name: Sync orglist dictionary
         run: python orglist/sync_orgs_and_clean.py
 
-      - name: Step 2 - Fetch Daily Tender Data
-        run: python pcc_crawler.py
-
-      - name: Commit and Push changes
+      - name: Commit and push orglist updates
         run: |
           git config --local user.email "action@github.com"
           git config --local user.name "GitHub Action"
-          git add .
-          git commit -m "Automated Daily Sync: Dictionary & Tenders [$(date +'%Y-%m-%d')]" || exit 0
+          git add orglist/ README.md org-search.html
+          git commit -m "Automated Orglist Sync [$(date +'%Y-%m-%d')]" || exit 0
           git push
