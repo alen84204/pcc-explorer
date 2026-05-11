@@ -1,6 +1,7 @@
 {
   "official_date": "20260302",
-  "system_last_checked": "20260510 16:42",
+  "system_last_checked": "20260511 17:42",
+  "update_schedule": "每天 1 次（台灣時間（UTC+8）05:00）",
   "source_url": "https://www.dgpa.gov.tw/open/code/orglist.csv",
   "source_last_modified": "Mon, 02 Mar 2026 07:16:01 GMT",
   "source_formats": [
@@ -37,6 +38,20 @@
       "file": "units_History.json",
       "size": 3853723,
       "md5": "04105d80e2b748e5f73e1d99464e035c"
+    },
+    {
+      "label": "public_active_min",
+      "kind": "public",
+      "file": "orgs_active_min.json",
+      "size": 946125,
+      "md5": "816f27a2bdefd6e9c0e7bc1dbe67667c"
+    },
+    {
+      "label": "public_history_min",
+      "kind": "public",
+      "file": "orgs_history_min.json",
+      "size": 1059948,
+      "md5": "a37666b992e16c8657ae99684bb45d7f"
     }
   ]
 }

@@ -286,7 +286,7 @@
         <div class="footer-meta">
             <div class="line">
                 <span>資料來源：DGPA 官方機關名冊</span>
-                <span>更新頻率 / 更新時間：每天 3 次（01:00 / 09:00 / 17:00）</span>
+                <span id="meta-update-schedule">更新頻率 / 更新時間：每天 1 次（台灣時間（UTC+8）05:00）</span>
             </div>
         </div>
     </div>
@@ -308,6 +308,7 @@
         const metaOfficialDate = document.getElementById('meta-official-date');
         const activeCountMeta = document.getElementById('meta-active-count');
         const historyCountMeta = document.getElementById('meta-history-count');
+        const updateScheduleMeta = document.getElementById('meta-update-schedule');
 
         function normalizeText(value) {
             return (value || '')
@@ -357,6 +358,7 @@
                         const manifest = await manifestRes.json();
                         if (manifest.system_last_checked) metaCheckTime.innerText = `系統最後檢測時間：${manifest.system_last_checked}`;
                         if (manifest.official_date) metaOfficialDate.innerText = `官方機關名冊最新日期：${manifest.official_date}`;
+                        if (manifest.update_schedule) updateScheduleMeta.innerText = `更新頻率 / 更新時間：${manifest.update_schedule}`;
                     }
                 } catch (manifestError) {
                     // keep built-in defaults when manifest is unavailable

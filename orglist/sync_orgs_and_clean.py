@@ -20,10 +20,13 @@ ROOT_DIR = os.path.dirname(BASE_DIR)
 
 ACTIVE_FILE = os.path.join(BASE_DIR, 'units_Active.json')
 HISTORY_FILE = os.path.join(BASE_DIR, 'units_History.json')
+ACTIVE_MIN_FILE = os.path.join(BASE_DIR, 'orgs_active_min.json')
+HISTORY_MIN_FILE = os.path.join(BASE_DIR, 'orgs_history_min.json')
 MANIFEST_FILE = os.path.join(BASE_DIR, 'manifest.json')
 ORG_README = os.path.join(BASE_DIR, 'README.md')
 ROOT_README = os.path.join(ROOT_DIR, 'README.md')
 ORG_SEARCH_HTML = os.path.join(ROOT_DIR, 'org-search.html')
+UPDATE_SCHEDULE = '每天 1 次（台灣時間（UTC+8）05:00）'
 
 
 def convert_id_standard(oid):
@@ -82,6 +85,16 @@ def write_json(path, payload):
         json.dump(payload, f, ensure_ascii=False, indent=2)
 
 
+def build_min_lookup(data_map):
+    return {
+        pcc_id: {
+            '機關代碼': info.get('機關代碼', ''),
+            '機關名稱': info.get('機關名稱', ''),
+        }
+        for pcc_id, info in data_map.items()
+    }
+
+
 def build_manifest(official_date, checked_at, last_modified):
     entries = []
     for label, path, kind in [
@@ -89,6 +102,8 @@ def build_manifest(official_date, checked_at, last_modified):
         ('snapshot_json', os.path.join(BASE_DIR, f'orglist_{official_date}.json'), 'snapshot'),
         ('lookup_active', ACTIVE_FILE, 'lookup'),
         ('lookup_history', HISTORY_FILE, 'lookup'),
+        ('public_active_min', ACTIVE_MIN_FILE, 'public'),
+        ('public_history_min', HISTORY_MIN_FILE, 'public'),
     ]:
         if os.path.exists(path):
             entries.append({
@@ -102,6 +117,7 @@ def build_manifest(official_date, checked_at, last_modified):
     payload = {
         'official_date': official_date,
         'system_last_checked': checked_at,
+        'update_schedule': UPDATE_SCHEDULE,
         'source_url': SOURCE_URL,
         'source_last_modified': last_modified,
         'source_formats': ['csv'],
@@ -187,6 +203,8 @@ def auto_update_dictionary():
 
         write_json(ACTIVE_FILE, active_map)
         write_json(HISTORY_FILE, history_map)
+        write_json(ACTIVE_MIN_FILE, build_min_lookup(active_map))
+        write_json(HISTORY_MIN_FILE, build_min_lookup(history_map))
 
         checked_at = datetime.now().strftime('%Y%m%d %H:%M')
         build_manifest(date_str, checked_at, last_mod)
