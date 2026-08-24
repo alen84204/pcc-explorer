@@ -1,9 +1,9 @@
 {
-  "official_date": "20260302",
-  "system_last_checked": "20260823 21:15",
+  "official_date": "20260824",
+  "system_last_checked": "20260824 21:21",
   "update_schedule": "每天 1 次（台灣時間（UTC+8）05:00）",
   "source_url": "https://www.dgpa.gov.tw/open/code/orglist.csv",
-  "source_last_modified": "Mon, 02 Mar 2026 07:16:01 GMT",
+  "source_last_modified": "Mon, 24 Aug 2026 02:37:34 GMT",
   "source_formats": [
     "csv"
   ],
@@ -14,44 +14,37 @@
     {
       "label": "source_csv",
       "kind": "source",
-      "file": "orglist_20260302.csv",
-      "size": 3102062,
-      "md5": "2a76110383b36a7eeae1216303618c39"
-    },
-    {
-      "label": "snapshot_json",
-      "kind": "snapshot",
-      "file": "orglist_20260302.json",
-      "size": 9896777,
-      "md5": "a356fc2c018964ab9306abed178c5e9f"
+      "file": "orglist_20260824.csv",
+      "size": 3169095,
+      "md5": "0fdfd911eafcd17fe928066e5072c10b"
     },
     {
       "label": "lookup_active",
       "kind": "lookup",
       "file": "units_Active.json",
-      "size": 3383101,
-      "md5": "2097d7f7b94808a55b29b09feec0a1d8"
+      "size": 3383619,
+      "md5": "952756993b495e7013327055c14cc2d6"
     },
     {
       "label": "lookup_history",
       "kind": "lookup",
       "file": "units_History.json",
-      "size": 3853723,
-      "md5": "04105d80e2b748e5f73e1d99464e035c"
+      "size": 3862937,
+      "md5": "0e5648b599dc33b525f1deba995f065e"
     },
     {
       "label": "public_active_min",
       "kind": "public",
       "file": "orgs_active_min.json",
-      "size": 946125,
-      "md5": "816f27a2bdefd6e9c0e7bc1dbe67667c"
+      "size": 946341,
+      "md5": "addd52ddc06df75291018664076f9f26"
     },
     {
       "label": "public_history_min",
       "kind": "public",
       "file": "orgs_history_min.json",
-      "size": 1059948,
-      "md5": "a37666b992e16c8657ae99684bb45d7f"
+      "size": 1062440,
+      "md5": "a557ac661883dbbad4d9851657e7c4e9"
     }
   ]
 }
